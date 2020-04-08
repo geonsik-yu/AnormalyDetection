@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="x-ua-compatible" content="ie=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no">
+	<title>Urbana Anormaly Study</title>
+
+	<style type="text/css">
+
+	body {
+		font-family: "PT Sans", "Arial", sans-serif;
+		background-color: #808080;
+	}
+
+	.hex {
+		cursor: pointer;
+		fill: red;
+		fill-opacity: 0.4;
+		stroke: #FFF;
+		stroke-width: 3;		
+	}
+
+	.circ {
+		cursor: pointer;
+		fill: #808080;
+		fill-opacity: 1;
+		stroke: #FFF;
+		stroke-width: 3;		
+	}
+
+	.rect {
+		cursor: pointer;
+		fill: red;
+		fill-opacity: 0.4;
+		stroke: #FFF;
+		stroke-width: 3;	
+
+	}
+	</style>
+
+</head>
+<body>
+	<div class='canvas'></div>
+<!-- The core Firebase JS SDK is always required and must be listed first -->
+<!-- <script src="https://www.gstatic.com/firebasejs/7.13.2/firebase-app.js"></script> -->
+
+
+<script src="https://www.gstatic.com/firebasejs/7.13.2/firebase-firestore.js"></script>
+
+<!-- TODO: Add SDKs for Firebase products that you want to use
+     https://firebase.google.com/docs/web/setup#available-libraries -->
+<script src="https://www.gstatic.com/firebasejs/7.13.2/firebase-analytics.js"></script>
+
+<script>
+  // Your web app's Firebase configuration
+	var firebaseConfig = {
+		apiKey: "AI    appId: "1:174490202926:web:b89a819a9dcb712b12c0bf", zaSyCdoIIbCH7u4aF0RyyGX69exnwiqoq6CqA",
+		authDomain: "eldersign.firebaseapp.com",
+		databaseURL: "https://eldersign.firebaseio.com",
+		projectId: "eldersign",
+		storageBucket: "eldersign.appspot.com",
+		messagingSenderId: "174490202926",
+		measurementId: "G-6JDKFRW9SX"
+	};
+	
+	// Initialize Firebase
+	firebase.initializeApp(firebaseConfig);
+	const db = firebase.firestore(); // Initialize DB (firestore)
+	db.settings({ timestampsInSnapshots: true })
+
+	//firebase.analytics();
+	</script>
+	<script src="https://d3js.org/d3.v5.min.js"></script>	
+	<script>
+		var Azathoth = ["NORTHSIDE", "MERCHANT DISTRICT", "DOWNTOWN", "RIVERTOWN", "EASTTOWN"];
+
+		const hexSideLength = 150
+		const baseLeft = 100
+		const baseTop = 50
+
+		var modifiersLeft = [[{"mx":0, "my":0.5}, {"mx":Math.sqrt(3)/4, "my":0.25}, {"mx":Math.sqrt(3)/2, "my":1}, {"mx":Math.sqrt(3)/4, "my":1.75}, {"mx":0, "my":1.5}], [{"mx":Math.sqrt(3)/4, "my":0.25}, {"mx":Math.sqrt(3)/2, "my":0}, {"mx":Math.sqrt(3), "my":0.5}, {"mx":Math.sqrt(3), "my":1}, {"mx":Math.sqrt(3)/2, "my":1}], [{"mx":Math.sqrt(3)/2, "my":1}, {"mx":Math.sqrt(3), "my":1}, {"mx":Math.sqrt(3), "my":1.5}, {"mx":Math.sqrt(3)/2, "my":2}, {"mx":Math.sqrt(3)/4, "my":1.75}]]
+		var modifiersRight = [[{"mx":0, "my":0.5}, {"mx":Math.sqrt(3)/4, "my":0.25}, {"mx":Math.sqrt(3)/2, "my":1}, {"mx":Math.sqrt(3)/4, "my":1.75}, {"mx":0, "my":1.5}], [{"mx":Math.sqrt(3)/4, "my":0.25}, {"mx":Math.sqrt(3)/2, "my":0}, {"mx":Math.sqrt(3), "my":0.5}, {"mx":Math.sqrt(3), "my":1}, {"mx":Math.sqrt(3)/2, "my":1}], [{"mx":Math.sqrt(3)/2, "my":1}, {"mx":Math.sqrt(3), "my":1}, {"mx":Math.sqrt(3), "my":1.5}, {"mx":Math.sqrt(3)/2, "my":2}, {"mx":Math.sqrt(3)/4, "my":1.75}]]
+
+
+		var deckPaddings = [{"pl": baseLeft, "pt": baseTop},
+							{"pl": baseLeft+175*1, "pt": baseTop+303},
+							{"pl": baseLeft+175*2, "pt": baseTop},
+							{"pl": baseLeft+175*3, "pt": baseTop+303},
+							{"pl": baseLeft+175*4, "pt": baseTop}]
+		var deckNames = ["Place 1", "Place 2", "Place 3", "Place 4", "Place 5"]
+
+		var roadPaddings = [{"pl": baseLeft+175+90, "pt": baseTop+100, "angl": 0},
+							{"pl": baseLeft+175*3+90, "pt": baseTop+100, "angle": 0},
+							{"pl": baseLeft+175*2+90, "pt": baseTop+100+303, "angle": 0}
+		]
+
+		const canvas = d3.select(".canvas")
+		const svg = canvas.append("svg")
+					.attr('height', 1500)
+					.attr('width', 1500)
+		
+		var deckCenters = [];
+		for (var i = 0; i < 5; i++) {
+			var centerCoord = neighborDeck(modifiersLeft, hexSideLength, deckPaddings[i].pl, deckPaddings[i].pt, "Deck " + (i+1) + " ");
+			deckCenters.push(centerCoord);
+		}
+
+		//for (var i = 0; i < 3; i++) {
+		//	roadDeck(hexSideLength, roadPaddings[i].pl, roadPaddings[i].pt, roadPaddings[i].angl);
+		//}
+		//roadDeck(hexSideLength, 365, baseTop + 100, 0);
+		//roadDeck(hexSideLength, 715, baseTop + 100, 0);
+		//roadDeck(hexSideLength, 540, 453, 0);
+
+		for (var i = 0; i < 5; i++) {
+			for (var j = i; j < 5; j++) {
+				var midCx = (deckCenters[i].cx + deckCenters[j].cx)/2;
+				var midCy = (deckCenters[i].cy + deckCenters[j].cy)/2;
+				var angle = 0;
+				var dist = Math.sqrt(Math.pow(deckCenters[i].cx - deckCenters[j].cx, 2) + Math.pow(deckCenters[i].cy - deckCenters[j].cy, 2));
+
+				if (dist <= 2*175 && dist > 0){
+					if ( Math.abs(deckCenters[i].cy - deckCenters[j].cy) > 0.01 ){
+						console.log(i%2==0)
+						if ( i%2==0 ){
+							angle = 60
+						} else {
+							angle = -60
+						} 
+					}
+					roadDeck(hexSideLength, midCx, midCy, angle);
+				}
+			}
+		}
+
+
+		svg.selectAll("polygon")  // For new circle, go through the update process
+			.on("mouseover", handleMouseOver);
+
+
+
+		function neighborDeck(modifiers, length, paddingLeft, paddingTop, deckName){
+			for (var i = 0; i < 3; i++) {
+				svg.append('polygon')
+					.attr('points', partHex(length, paddingLeft, paddingTop, modifiers[i]))
+					.attr('class', 'hex')
+					.attr('space', deckName + ' space'+(i+1))
+			}
+			var center = partCirc(length, paddingLeft, paddingTop)
+			console.log(center)
+			svg.append('circle')
+				.attr('class', 'circ')
+				.attr('cx', center.cx)
+				.attr('cy', center.cy)
+				.attr('r', length/5)
+			return center
+		}
+
+		function partHex(length, paddingLeft, paddingTop, modifiers){
+			var path = ''
+			for (var i = 0; i < 5; i++) {
+				path += (paddingLeft+length*modifiers[i].mx) + ',' + (paddingTop+length*modifiers[i].my) + ' ';
+			}
+			return path
+		}
+
+		function partCirc(length, paddingLeft, paddingTop){
+			return {"cx":(paddingLeft+length*Math.sqrt(3)/2), "cy":(paddingTop+length)}
+		}
+
+		function roadDeck(length, centerLeft, centerTop, angle){
+			var width = 80
+			var height = 100;
+			var rotation = angle + "," + (centerLeft) + "," + (centerTop)
+			svg.append('rect')
+				.attr('class', 'rect')
+				.attr('x', centerLeft - width/2)
+				.attr('y', centerTop - height/2)
+				.attr('width', 80)
+				.attr('height', 100)
+				.attr('transform', "rotate(" + rotation + ")")
+
+		}
+
+
+
+		// Create Event Handlers for mouse
+		function handleMouseOver(n, i) {  // Add interactivity
+			console.log(this.getAttribute("space"))
+		}
+	</script>
+</body>
+</html>
+
+
+
+
+
+
